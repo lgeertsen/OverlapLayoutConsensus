@@ -1,0 +1,16 @@
+{
+  "name": "projet-algo",
+  "version": "0.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "dev": "next"
+  },
+  "repository": "",
+  "author": "Lee Geertsen",
+  "dependencies": {
+    "next": "^6.0.3",
+    "react": "^16.3.2",
+    "react-dom": "^16.3.2"
+  }
+}
