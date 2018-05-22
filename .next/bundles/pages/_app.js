@@ -75,7 +75,7 @@ var _inherits2 = _interopRequireDefault(__webpack_require__("./node_modules/@bab
 
 var _react = _interopRequireWildcard(__webpack_require__("./node_modules/react/cjs/react.development.js"));
 
-var _propTypes = _interopRequireDefault(__webpack_require__("./node_modules/next/node_modules/prop-types/index.js"));
+var _propTypes = _interopRequireDefault(__webpack_require__("./node_modules/prop-types/index.js"));
 
 var _shallowEquals = _interopRequireDefault(__webpack_require__("./node_modules/next/dist/lib/shallow-equals.js"));
 
