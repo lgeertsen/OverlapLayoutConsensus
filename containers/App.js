@@ -4,6 +4,7 @@ import cytoscape from 'cytoscape';
 
 import Navbar from '../containers/Navbar';
 import Helper from '../classes/Helper';
+import Neighbor from '../classes/Neighbor';
 
 const readChars = ["A", "C", "G", "T"];
 
@@ -22,12 +23,16 @@ export default class App extends React.Component {
     this.state = {
       step: 1,
       sequence: "",
+      rebuildSequence: "",
       lengthSequence: 50,
       minLengthRead: 5,
       maxLengthRead: 10,
       animationText: "",
       animate: false,
       reads: [],
+      voisins: [],
+      scores: [],
+      path: [],
       busy: false,
       waitingFunctionList: [],
       showReads: false
@@ -49,26 +54,36 @@ export default class App extends React.Component {
          .css({
            'height': 20,
            'width': 20,
-           'background-color': '#e8e406',
+           'background-color': '#f1c40f',
            'content': 'data(read)',
            'opacity': 1,
            'transition-property': 'opacity',
-           'transition-duration': '0.5s'
+           'transition-duration': '0.3s'
          })
        .selector('edge')
          .css({
            'label': "data(label)",
            'curve-style': 'bezier',
-           'width': 5,
-           'line-color': '#f2f08c',
-           'opacity': 0.7,
+           'width': 1,
+           'line-color': '#95a5a6',
+           'opacity': 1,
            'target-arrow-shape': 'triangle',
-           'target-arrow-color': 'blue'
+           'target-arrow-color': '#95a5a6',
+           'transition-property': 'opacity',
+           'transition-duration': '0.3s'
          })
        .selector('.hideNode')
         .css({
           'opacity': 0,
-        }),
+        })
+        .selector('.path')
+          .css({
+            'width': 3,
+            'line-color': '#e67e22',
+            'target-arrow-color': '#d35400',
+            'transition-property': 'width, line-color, target-arrow-color',
+            'transition-duration': '0.5s'
+          }),
 
       elements: elements
     });
@@ -86,6 +101,7 @@ export default class App extends React.Component {
       vide += "-";
     }
     this.setState({step: 2, sequence: sequence});
+    // this.setState({step: 2, sequence: "AATGCCTTACACTGAAGGTTTA"});
 
     // odoo.default({ el:'#sequenceContainer', from: vide, to: sequence, animationDelay: 1000, duration: 2000 });
   }
@@ -98,7 +114,10 @@ export default class App extends React.Component {
     let count = 0;
 
     while(loop) {
-      let r = Helper.random(this.state.minLengthRead, this.state.maxLengthRead+1);
+      let min = this.state.minLengthRead;
+      let max = this.state.maxLengthRead;
+      let r = Helper.random(min, max+1);
+      console.log(r);
       let f = i+r;
       if(i+r >= sequence.length) {
         f = sequence.length;
@@ -123,6 +142,13 @@ export default class App extends React.Component {
       i = f-b;
       count++;
     }
+    // reads = [
+    //   "GAAGGTTTA",
+  	// 	"GCCTTACAC",
+  	// 	"ACTGAAGG",
+  	// 	"AATGCC",
+  	// 	"ACACTG"
+    // ];
     this.setState({step: 3, reads: reads});
   }
 
@@ -184,6 +210,8 @@ export default class App extends React.Component {
       let r = lol[i];
       lol[i] = lol[index];
       lol[index] = r;
+
+
       // let n = nums[i];
       // nums[i] = nums[index];
       // nums[index] = n;
@@ -224,15 +252,123 @@ export default class App extends React.Component {
     this.createGraph(elements, this.showNodes);
   }
 
+  overlap(s1, s2){
+  	let max = 0;
+    for(let i = 1; i <= Math.min(s1.length, s2.length); i++) {
+      if(s1.substr(s1.length-i, s1.length-1) == s2.substr(0, i)) {
+        if(max < i) {
+          //update max and str
+          max = i;
+          //result = s1 + s2.substr(i);
+        }
+      }
+    }
+    //return str;
+    return max;
+  }
+
+  drawEdges() {
+    let voisins = this.state.voisins;
+    let scores = this.state.scores;
+    let reads = this.state.reads;
+
+    for(let i = 0; i < reads.length; i++){
+      voisins[i] = [];
+      scores[i] = [];
+  		for(let j = 0; j < reads.length; j++){
+  			let score = 0;
+  			if(i != j){
+  				score = this.overlap(reads[i], reads[j]);
+  				// if(score == (int)reads[i].size()) reads[j].size())
+
+  				//on ne compte pas les chevauchements avec un score nulle ou les chevauchements inclus
+  				if(score > 0) //&& score != (int)reads[j].size())// && score < (int)min(reads[i].size(), reads[j].size()))
+            voisins[i].push(j);
+
+  			}
+  			scores[i].push(score);
+  		}
+  	}
+    this.setState({voisins: voisins, scores: scores});
+
+    let edges = [];
+    for(let i = 0; i < voisins.length; i++) {
+      for(let j = 0; j < voisins[i].length; j++) {
+        edges.push({
+          data: {
+            id: 'e' + i + 't' + voisins[i][j],
+            source: 'r' + i,
+            target: 'r' + voisins[i][j],
+            // label: "label"
+          },
+          classes: 'hideNode'
+        });
+      }
+    }
+
+    cy.add(edges);
+    this.showEdges();
+    this.setState({step: 6});
+  }
+
   showNodes() {
     let nodes = cy.nodes();
     for(let i = 0; i < nodes.length; i++) {
       (function(ind) {
         setTimeout(() => {
-          nodes[i].removeClass('hideNode');
+          nodes[ind].removeClass('hideNode');
         }, 0 + (200 * ind));
       })(i);
     }
+  }
+
+  showEdges() {
+    let edges = cy.edges();
+    for(let i = 0; i < edges.length; i++) {
+      (function(ind) {
+        setTimeout(() => {
+          edges[ind].removeClass('hideNode');
+        }, 0 + (50 * ind));
+      })(i);
+    }
+  }
+
+  nearest_neighbor() {
+    Neighbor.nearest_neighbor(this.state.voisins, this.state.scores, bestPath => {
+      this.setState({step: 7, path: bestPath});
+      this.highlightPath(bestPath);
+    });
+  }
+
+  highlightPath(path) {
+    let edges = cy.edges();
+    // let path = this.state.path;
+    for(let i = 0; i < path.length-1; i++) {
+      (function(ind) {
+        setTimeout(() => {
+          edges.getElementById('e' + path[ind] + 't' + path[ind+1]).addClass('path');
+        }, 0 + (750 * ind));
+      })(i);
+    }
+  }
+
+  rebuildSequence() {
+    let seq = "";
+    let path = this.state.path;
+  	for(let i = 0; i < path.length; i++){
+      (function(self, ind) {
+        setTimeout(() => {
+          let score = ind == path.length - 1 ? 0 : self.state.scores[path[ind]][path[ind+1]];
+          // if(ind == 0) {
+          //   seq += self.state.reads[path[ind]];
+          // }
+          seq += self.state.reads[path[ind]].substr(0, self.state.reads[path[ind]].length - score);
+          self.setState({rebuildSequence: seq});
+        }, 0 + (750 * ind));
+      })(this, i);
+
+  	}
+    this.setState({step: 8, rebuildSequence: seq});
   }
 
   skipAnimations() {
@@ -265,14 +401,19 @@ export default class App extends React.Component {
     this.setState({
       step: 1,
       sequence: "",
+      rebuildSequence: "",
       lengthSequence: 50,
-      minLengthRead: 5,
+      minLengthRead: 6,
       maxLengthRead: 10,
       animationText: "",
       animate: false,
       reads: [],
+      voisins: [],
+      scores: [],
+      path: [],
       busy: false,
-      waitingFunctionList: []
+      waitingFunctionList: [],
+      showReads: false
     });
   }
 
@@ -294,7 +435,10 @@ export default class App extends React.Component {
           createReads={() => this.createReads()}
           shuffleReads={() => this.shuffleReads()}
           showGraph={() => this.showGraph()}
-          showSidebar={() => {this.setState({step: 4}); setTimeout(() => {cy.resize(); cy.center();}, 1100); }}
+          drawEdges={() => this.drawEdges()}
+          nearest_neighbor={() => this.nearest_neighbor()}
+          rebuildSequence={() => this.rebuildSequence()}
+          reset={() => this.reset()}
         />
 
         <h6 id="animationText" className={this.state.animate ? 'animate' : ''}>
@@ -305,7 +449,7 @@ export default class App extends React.Component {
 
         <div id="reset">
           <button className="btn btn-outline-dark" onClick={() => this.reset()}>RESET</button>
-          <button className="btn btn-outline-warning" onClick={() => this.skipAnimations()}>SKIP ANIMATIONS</button>
+          {/* <button className="btn btn-outline-warning" onClick={() => this.skipAnimations()}>SKIP ANIMATIONS</button> */}
         </div>
 
         {/* {this.state.step == 1 || this.state.step == 2 ?
@@ -339,17 +483,36 @@ export default class App extends React.Component {
               </div>
               : ''
             }
-            <div id="readsContainer">
-              <div id="readsBox" className={this.state.showReads ? "row justify-content-center showReads" : "row justify-content-center"}>
-                {this.state.reads.map((read, index) => (
-                  <div key={index} id={"read" + index} className="read col-md-2">
-                    {read.split('').map((letter, index2) => (
-                      <span key={index2} id={"read" + index + "char" + index2} className={"read" + letter}>{letter}</span>
-                    ))}
-                  </div>
-                ))}
+            { this.state.step < 7 ?
+              <div id="readsContainer">
+                <div id="readsBox" className={this.state.showReads ? "row justify-content-center showReads" : "row justify-content-center"}>
+                  {this.state.reads.map((read, index) => (
+                    <div key={index} id={"read" + index} className="read col-md-2">
+                      {read.split('').map((letter, index2) => (
+                        <span key={index2} id={"read" + index + "char" + index2} className={"read" + letter}>{letter}</span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+              : ''
+            }
+            { this.state.step > 6 ?
+              <div id="rebuildContainer">
+                <div id="rebuildSequence">
+                  <h6>
+                    {this.state.sequence.split('').map((letter, index) => (
+                      <span key={index} id={"sequence" + index} className={"read" + letter}>{letter}</span>
+                    ))}
+                    <br/>
+                    {this.state.rebuildSequence.split('').map((letter, index) => (
+                      <span key={index} id={"sequence" + index} className={"read" + letter}>{letter}</span>
+                    ))}
+                  </h6>
+                </div>
+              </div>
+              : ''
+            }
           </div>
           <div id="cy" className={this.state.step > 4 ? 'open' : ''}></div>
         </div>
@@ -395,7 +558,11 @@ export default class App extends React.Component {
             padding-top: 25px;
             text-align: center;
           }
-          #sequenceContainer h6, #numbers, #animationText {
+          #rebuildSequence {
+            margin-top: 25px;
+            // text-align: center;
+          }
+          #sequenceContainer h6, #rebuildSequence h6, #animationText {
             font-size: 25px;
             font-weight: bold;
             word-break: break-all;

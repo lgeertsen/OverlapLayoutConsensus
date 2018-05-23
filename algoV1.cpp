@@ -6,7 +6,7 @@
 
 using namespace std;
 
-const char ADN[] = {'A', 'G', 'C', 'T'}; 
+const char ADN[] = {'A', 'G', 'C', 'T'};
 
 int random(int min, int max){
 	return min + rand() % (max - min);
@@ -20,7 +20,7 @@ string create_sequence(int n){
 		seq.push_back(ADN[rand() % 4]);
 	}
 
-	return seq; 
+	return seq;
 }
 
 string random_read(int min_size, int max_size){
@@ -30,11 +30,11 @@ string random_read(int min_size, int max_size){
 
 	read = create_sequence(read_size);
 
-	return read; 
+	return read;
 }
 
 void create_reads(int min_size, int max_size, vector<string>& reads){
-	
+
 	for(int i = 0 ; i < (int)reads.size() ; i++){
 		reads[i] = random_read(min_size, max_size);
 	}
@@ -49,7 +49,7 @@ void create_reads(const string& sequence, int min_size, int max_size, vector<str
 
 		int r = random(min_size, max_size + 1);
 		int f = i + r;
-		
+
 		if(i + r >= (int)sequence.size()){
 			f = sequence.size();
 			loop = false;
@@ -81,7 +81,7 @@ int overlap(const string& s1, const string& s2){
 
     int s1_size = s1.size();
     int s2_size = s2.size();
- 
+
     // check suffix of s1 matches with prefix of s2
     for (int i = 1; i <= min(s1_size, s2_size); i++)
     {
@@ -117,15 +117,15 @@ void create_graph(const vector<string>& reads, vector<vector<int> >& voisins, ve
 	for(int i = 0 ; i < (int)reads.size() ; i++){
 
 		for (int j = 0; j < (int)reads.size(); ++j){
-			
+
 			int score = 0;
 			if(i != j){
 				score = overlap(reads[i], reads[j]);
 
-				if(score == (int)reads[i].size()) reads[j].size())
+				// if(score == (int)reads[i].size()) reads[j].size())
 
 				//on ne compte pas les chevauchements avec un score nulle ou les chevauchements inclus
-				if(score > 0 && score != (int)reads[j].size())// && score < (int)min(reads[i].size(), reads[j].size()))
+				if(score > 0) //&& score != (int)reads[j].size())// && score < (int)min(reads[i].size(), reads[j].size()))
 					voisins[i].push_back(j);
 
 			}
@@ -143,7 +143,7 @@ void print_graph(const vector<vector<T> >& graph){
 	for (int i = 0; i < (int)graph.size(); ++i){
 
 		cout << "{ ";
-		
+
 		for(int j = 0 ; j < (int)graph[i].size() ; j++){
 			cout << graph[i][j] << " ";
 		}
@@ -154,9 +154,9 @@ void print_graph(const vector<vector<T> >& graph){
 	cout << "}" << endl;
 }
 
-//Applique l'algorithme du plus proche voisin en commancant par le sommet desiré et renvoie le score total du chemin. 
+//Applique l'algorithme du plus proche voisin en commancant par le sommet desiré et renvoie le score total du chemin.
 int n_nearest_neighbor(int n, const vector<vector<int> >& voisins, const vector<vector<int> >& scores, vector<int>& path){
-	
+
 	int total_score = 0;
 	vector<bool> visited(voisins.size(), false);
 
@@ -164,14 +164,14 @@ int n_nearest_neighbor(int n, const vector<vector<int> >& voisins, const vector<
 
 	path[0] = n;
 	visited[n] = true;
-	
+
 	for(int i = 1 ; i < (int)voisins.size(); i++){
 
 		int max_score = -1;
 		int best_vois = 0;
 
 		for(int j = 0 ; j < (int)voisins[n].size() ; j++){
-			
+
 			int vois = voisins[n][j];
 			int score = scores[n][vois];
 
@@ -187,7 +187,7 @@ int n_nearest_neighbor(int n, const vector<vector<int> >& voisins, const vector<
 
 		total_score += max_score;
 		n = best_vois;
-		
+
 		path[i] = n;
 		visited[n] = true;
 	}
@@ -197,15 +197,15 @@ int n_nearest_neighbor(int n, const vector<vector<int> >& voisins, const vector<
 
 //renvoie le chemin le plus efficace en appliquant le plus proche voisins sur tout les sommets
 int nearest_neighbor(const vector<vector<int> >& voisins, const vector<vector<int> >& scores, vector<int>& best_path){
-	
+
 	int best_score = -2;
-	
+
 	//le score du n ieme chemin emprunté
 	int n_score = 0;
 
 	//le n ieme chemin emprunté
 	vector<int> n_path(voisins.size());
-	
+
 	for(int i = 0 ; i < (int)voisins.size(); i++){
 
 		n_score = n_nearest_neighbor(i, voisins, scores, n_path);
@@ -238,26 +238,26 @@ void print_n(const string& str, int n){
 }
 
 void print_alignement(const vector<vector<int> >& scores, const vector<int>& path, const vector<string>& reads){
-	
+
 	int print_pos = 0;
 
 	for (int i = 0; i < (int)path.size() ; ++i){
-		
+
 		int score = i == (int)path.size() - 1 ? 0 : scores[path[i]][path[i+1]];
 
 		//int score = scores[path[i]][path[i+1]];
-		//int len = reads[path[i]].size();  
+		//int len = reads[path[i]].size();
 
 		space(print_pos);
 
 		cout << reads[path[i]] << endl;//<< " | len: " << len << ", score: " << score << endl;
 
-		print_pos += reads[path[i]].size() - score; 
+		print_pos += reads[path[i]].size() - score;
 	}
 }
 
 string sequence(const vector<vector<int> >& scores, const vector<int>& path, const vector<string>& reads){
-	
+
 	string seq;
 
 	for (int i = 0; i < (int)path.size(); i++){
@@ -276,7 +276,7 @@ int main(int argc, char const *argv[])
 	int reads_number = 0;
 
 	string init_seq;
-	
+
 	vector<string> reads;
 
 	if(argc < 2){
@@ -294,18 +294,18 @@ int main(int argc, char const *argv[])
 		reads[4] = "ACACTG";
 	}
 	else{
-		
+
 		srand(time(NULL));
 
 		reads_number = atoi(argv[1]);
 
 		init_seq = create_sequence(reads_number);
 
-		create_reads(init_seq, 5, 10, reads);	
+		create_reads(init_seq, 5, 10, reads);
 	}
 
 	//print_scale(10);
-	
+
 	cout << "Init Sequence: " << endl;
 	cout << init_seq << endl << endl;
 
@@ -324,7 +324,7 @@ int main(int argc, char const *argv[])
 	vector<vector<int> > scores(reads.size());
 
 	create_graph(reads, voisins, scores);
-	
+
 	cout << "Graph: ";
 	print_graph(voisins);
 
