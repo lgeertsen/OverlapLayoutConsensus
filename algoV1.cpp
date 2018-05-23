@@ -9,7 +9,7 @@ using namespace std;
 const char ADN[] = {'A', 'G', 'C', 'T'}; 
 
 int random(int min, int max){
-	return min + rand() % (max - min);
+	return min + rand() % (max - min + 1);
 }
 
 string create_sequence(int n){
@@ -59,6 +59,35 @@ void create_reads(const string& sequence, int min_size, int max_size, vector<str
 
 		int b = random(3, 6);
 		i = f - b;
+	}
+}
+
+void create_reads(const string& sequence, int n, int min_size, int max_size, vector<string>& reads){
+
+	int overlap_start = 0; 
+	string overlap;
+
+	int read_start = 0;
+	string read;
+
+	int offset = n == 0 ? sequence.size() : sequence.size() / n;
+
+	for(int i = 0 ; i < n ; i++){
+
+		read = sequence.substr(read_start, offset);
+
+		if(i != 0){
+			
+			int overlap_len = min(random(min_size, max_size), (int)read.size());//random(min_size, max_size);//
+			overlap_start = read_start - overlap_len;
+
+			overlap = sequence.substr(overlap_start, overlap_len);
+		}
+
+
+		read_start += offset;
+		
+		reads.push_back(overlap + read);
 	}
 }
 
@@ -114,6 +143,8 @@ void print_reads_overlap(const vector<string>& reads){
 
 void create_graph(const vector<string>& reads, vector<vector<int> >& voisins, vector<vector<int> >& scores){
 
+ 	//vector<bool> banned(reads.size(), false);
+
 	for(int i = 0 ; i < (int)reads.size() ; i++){
 
 		for (int j = 0; j < (int)reads.size(); ++j){
@@ -122,10 +153,12 @@ void create_graph(const vector<string>& reads, vector<vector<int> >& voisins, ve
 			if(i != j){
 				score = overlap(reads[i], reads[j]);
 
-				if(score == (int)reads[i].size()) reads[j].size())
+				//if(reads[j].size() == score)
+				//	banned[j] = true;
+
 
 				//on ne compte pas les chevauchements avec un score nulle ou les chevauchements inclus
-				if(score > 0 && score != (int)reads[j].size())// && score < (int)min(reads[i].size(), reads[j].size()))
+				if(score > 0)// && score < (int)min(reads[i].size(), reads[j].size()))
 					voisins[i].push_back(j);
 
 			}
@@ -270,20 +303,72 @@ string sequence(const vector<vector<int> >& scores, const vector<int>& path, con
 	return seq;
 }
 
+/*
+vector<string> random_cut(const string reads, int ncut,int min_size, int max_size){
+
+  vector<string> listCut;
+  string copy = reads;
+  int endCut = 0;
+  string cut = "";
+  //int startCut = 0;
+  for(int i = 0; (i < ncut) && i < (int)reads.size(); i++){
+    endCut = min_size + rand() % (max_size - min_size + 1);
+    if(endCut >= (int)reads.size()){
+      cut=copy.substr(0,(int)reads.size()-1);  
+      copy.erase(0,(int)reads.size()-1);
+      listCut.push_back(cut);
+    }
+    else{
+      cut=copy.substr(0,endCut);  
+      copy.erase(0,endCut);
+      listCut.push_back(cut);
+    }
+  }
+  if((int)reads.size() > 0){
+    cut=copy.substr(0,(int)reads.size()-1);  
+    copy.erase(0,(int)reads.size()-1);
+    listCut.push_back(cut);
+  }
+
+  string overlap_copy;
+  string test1;
+  string test2;
+  int new_cutoverlap=0;
+  
+  for(int i = 1; i < (int)listCut.size(); i++){
+    test1 = listCut[i-1];
+    test2 = listCut[i];
+    new_cutoverlap = 1 + rand() % (max_size - min_size);
+    if(test2 != ""){
+    overlap_copy = test1.substr(test1.size()- new_cutoverlap, new_cutoverlap);
+    overlap_copy.append(test2);
+    listCut[i] = overlap_copy;
+    }
+  }
+
+  return listCut;
+
+}
+*/
+
 int main(int argc, char const *argv[])
 {
 
 	int reads_number = 0;
 
-	string init_seq;
+	string init_seq = "AATGCCTTACACTGAAGGTTTA";
 	
 	vector<string> reads;
 
 	if(argc < 2){
 
-		reads_number = 5;
+		cout << "Ceci est la sequence par default" << endl;
+		cout << "Usage : " << argv[0] << " [SEQ_LEN][MIN_OVERLAP_LEN][MAX_OVERLAP_LEN][NB_READS]" << endl << endl;
 
-		init_seq = "AATGCCTTACACTGAAGGTTTA";
+		cout << "Init Sequence: " << endl;
+		cout << init_seq << endl << endl;
+
+		reads_number = 5;
 
 		reads.resize(reads_number);
 
@@ -295,23 +380,45 @@ int main(int argc, char const *argv[])
 	}
 	else{
 		
+		int min_overlap_len = 6;
+		int max_overlap_len = 10;
+		//int nb_reads = 10;
+
 		srand(time(NULL));
 
 		reads_number = atoi(argv[1]);
 
 		init_seq = create_sequence(reads_number);
 
-		create_reads(init_seq, 5, 10, reads);	
+		cout << "Init Sequence: " << endl;
+		cout << init_seq << endl << endl;
+
+		if(argc > 2){
+			min_overlap_len = atoi(argv[2]);
+			max_overlap_len = min_overlap_len;
+		}
+
+		if(argc > 3){
+			min_overlap_len = atoi(argv[2]);
+			max_overlap_len = atoi(argv[3]);
+		}
+
+		//if(argc > 4){
+		//	nb_reads = atoi(argv[4]);
+		//}
+		
+		//reads = random_cut(sequence, nb_reads, min_overlap_len, max_overlap_len);
+		//create_reads
+
+		create_reads(init_seq, min_overlap_len, max_overlap_len, reads);	
+		//if(argc <= 4)
+		//else
+			//create_reads(init_seq, nb_reads, min_overlap_len, max_overlap_len, reads);	
+
+		cout << "Overlap check: " << endl;
+		print_reads_overlap(reads);
+		cout << endl;
 	}
-
-	//print_scale(10);
-	
-	cout << "Init Sequence: " << endl;
-	cout << init_seq << endl << endl;
-
-	cout << "Overlap check: " << endl;
-	print_reads_overlap(reads);
-	cout << endl;
 
 	cout << "Reads: " << endl;
 	print_reads(reads);
@@ -340,7 +447,6 @@ int main(int argc, char const *argv[])
 		cout << "Aucun chemin possible avec l'algorithme des plus proche voisins" << endl;
 		exit(EXIT_FAILURE);
 	}
-
 
 	cout << "Path: ";
 	print_path(path);

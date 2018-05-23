@@ -67,6 +67,22 @@ vector<string> random_cut(const string reads, int ncut,int min_size, int max_siz
     listCut.push_back(cut);
   }
 
+  string overlap_copy;
+  string test1;
+  string test2;
+  int new_cutoverlap=0;
+  
+  for(int i = 1; i < (int)listCut.size(); i++){
+    test1 = listCut[i-1];
+    test2 = listCut[i];
+    new_cutoverlap = 1 + rand() % (max_size - min_size);
+    if(test2 != ""){
+    overlap_copy = test1.substr(test1.size()- new_cutoverlap, new_cutoverlap);
+    overlap_copy.append(test2);
+    listCut[i] = overlap_copy;
+    }
+  }
+
   return listCut;
 
 }
@@ -138,8 +154,6 @@ int main(){
   cout << test << "\n";
   vector<string> test2 = random_cut(test,10,7,12);
   print_listCut(test2);
-  vector<string> test3 = random_overlap_cut(test2,5,10);
-  print_listCutOverlap(test3);
   //print_alllist(test2,test3);
 
 
