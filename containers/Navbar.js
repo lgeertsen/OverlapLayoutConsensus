@@ -37,6 +37,11 @@ export default class App extends React.Component {
                 <button className="btn btn-outline-danger my-2 my-sm-0" onClick={() => this.props.shuffleReads()}>Shuffle reads</button>
               </div>
             : '' }
+            {this.props.step == 4 ?
+              <div className="form-inline my-2 my-lg-0">
+                <button className="btn btn-outline-danger my-2 my-sm-0" onClick={() => this.props.showGraph()}>Create graph</button>
+              </div>
+            : '' }
           </div>
         </nav>
 

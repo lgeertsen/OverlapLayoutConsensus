@@ -13,6 +13,7 @@ export default class Index extends React.Component {
           <link href="https://use.fontawesome.com/releases/v5.0.2/css/all.css" rel="stylesheet"/>
           <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css"/>
           <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
+          <script src="./static/AnimationText.js"></script>
         </Head>
 
         <App/>

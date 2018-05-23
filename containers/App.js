@@ -78,12 +78,16 @@ export default class App extends React.Component {
 
   generateSequence() {
     let sequence = "";
+    let vide = "";
     let r = this.state.lengthSequence;
     for(let i = 0; i < r; i++) {
       let m = Helper.random(0, readChars.length);
       sequence += readChars[m];
+      vide += "-";
     }
     this.setState({step: 2, sequence: sequence});
+
+    // odoo.default({ el:'#sequenceContainer', from: vide, to: sequence, animationDelay: 1000, duration: 2000 });
   }
 
   createReads() {
@@ -155,6 +159,10 @@ export default class App extends React.Component {
           r.style.opacity = 1;
           self.setState({animate: false});
           self.endBusy();
+          if(self.state.step > 3) {
+            let anim = document.getElementById("animationText");
+            anim.style.top = "-100px";
+          }
         }, 950);
       })(self);
     }, 600);
@@ -162,14 +170,41 @@ export default class App extends React.Component {
   }
 
   shuffleReads() {
+    this.skipAnimations();
+    let anim = document.getElementById("animationText");
+    anim.style.top = "-100px";
+
     let lol = this.state.reads;
+    // let nums = [];
+    // for(let i = 0; i < lol.length; i++) {
+    //   nums.push(i);
+    // }
     for(let i = 0; i < lol.length; i++) {
       let index = Helper.random(0, lol.length);
       let r = lol[i];
       lol[i] = lol[index];
       lol[index] = r;
+      // let n = nums[i];
+      // nums[i] = nums[index];
+      // nums[index] = n;
     }
-    console.log(lol);
+    // console.log(lol);
+    // console.log(nums);
+    // let positions = []
+    //
+    // for(let i = 0; i < nums.length; i++) {
+    //   let r = document.getElementById("read" + i);
+    //   let pos = r.getBoundingClientRect();
+    //   positions.push(pos);
+    // }
+    //
+    // for(let i = 0; i < nums.length; i++) {
+    //   let r = document.getElementById("read" + i);
+    //   r.style.position = "fixed";
+    //   r.style.top = positions[i].top + "px";
+    //   r.style.left = positions[i].left + "px";
+    // }
+    this.setState({step: 4, reads: lol});
   }
 
   showGraph() {
@@ -185,7 +220,7 @@ export default class App extends React.Component {
       r.classes = 'hideNode';
       elements.push(r);
     }
-    this.setState({step: 3});
+    this.setState({step: 5});
     this.createGraph(elements, this.showNodes);
   }
 
@@ -288,21 +323,24 @@ export default class App extends React.Component {
           : ''
         } */}
         <div id="graphs">
-          <div id="sidebar" className={this.state.step == 4 ? 'open' : ''}>
-            <div id="sequenceContainer">
-              <h6>
-                {this.state.sequence.split('').map((letter, index) => (
-                  <span key={index} id={"sequence" + index} className={"read" + letter}>{letter}</span>
-                ))}
-              </h6>
-              {/* <h6 id="numbers">
-                {numbers.map((letter, index) => (
-                  <span key={index}>{letter}</span>
-                ))}
-              </h6> */}
-            </div>
+          <div id="sidebar" className={this.state.step > 4 ? 'open' : ''}>
+            {this.state.step < 5 ?
+              <div id="sequenceContainer">
+                <h6>
+                  {this.state.sequence.split('').map((letter, index) => (
+                    <span key={index} id={"sequence" + index} className={"read" + letter}>{letter}</span>
+                  ))}
+                </h6>
+                {/* <h6 id="numbers">
+                  {numbers.map((letter, index) => (
+                    <span key={index}>{letter}</span>
+                  ))}
+                </h6> */}
+              </div>
+              : ''
+            }
             <div id="readsContainer">
-              <div className={this.state.showReads ? "row justify-content-center showReads" : "row justify-content-center"}>
+              <div id="readsBox" className={this.state.showReads ? "row justify-content-center showReads" : "row justify-content-center"}>
                 {this.state.reads.map((read, index) => (
                   <div key={index} id={"read" + index} className="read col-md-2">
                     {read.split('').map((letter, index2) => (
@@ -313,7 +351,7 @@ export default class App extends React.Component {
               </div>
             </div>
           </div>
-          <div id="cy" className={this.state.step == 4 ? 'open' : ''}></div>
+          <div id="cy" className={this.state.step > 4 ? 'open' : ''}></div>
         </div>
 
         <style jsx>{`
@@ -348,6 +386,7 @@ export default class App extends React.Component {
             flex-direction: column;
             // justify-content: center;
             // align-items: center;
+            overflow-x: auto;
           }
           #sidebar.open {
             height: calc(25vh - 56px);;
