@@ -16,23 +16,25 @@ export default class App extends React.Component {
             </ul>
             {this.props.step == 1 ?
               <div className="form-inline my-2 my-lg-0">
-                <label>Number of Reads</label>
-                <input className="form-control" type="number" min="0" value={this.props.nbReads} onChange={e => this.props.changeNbReads(e)}/>
-                <label>Min Length:</label>
-                <input className="form-control" type="number" min="5" max="10" value={this.props.minLengthRead} onChange={e => this.props.changeMinLength(e)}/>
-                <label>Max Length:</label>
-                <input className="form-control" type="number" min="5" max="10" value={this.props.maxLengthRead} onChange={e => this.props.changeMaxLength(e)}/>
-                <button className="btn btn-outline-danger my-2 my-sm-0" onClick={() => this.props.generateReads()}>Generate reads</button>
+                <label>Length Of Sequence</label>
+                <input className="form-control" type="number" min="10" value={this.props.lengthSequence} onChange={e => this.props.changeLengthSequence(e)}/>
+                <button className="btn btn-outline-danger my-2 my-sm-0" onClick={() => this.props.generateSequence()}>Generate sequence</button>
               </div>
             : '' }
             {this.props.step == 2 ?
               <div className="form-inline my-2 my-lg-0">
-                <button className="btn btn-outline-danger my-2 my-sm-0" onClick={() => this.props.showGraph()}>Show graph</button>
+
+                <label>Min Length Reads:</label>
+                <input className="form-control" type="number" min="5" max="10" value={this.props.minLengthRead} onChange={e => this.props.changeMinLength(e)}/>
+                <label>Max Length Reads:</label>
+                <input className="form-control" type="number" min="5" max="10" value={this.props.maxLengthRead} onChange={e => this.props.changeMaxLength(e)}/>
+                <button className="btn btn-outline-danger my-2 my-sm-0" onClick={() => this.props.createReads()}>Create reads</button>
+                {/* <button className="btn btn-outline-danger my-2 my-sm-0" onClick={() => this.props.showGraph()}>Show graph</button> */}
               </div>
             : '' }
             {this.props.step == 3 ?
               <div className="form-inline my-2 my-lg-0">
-                <button className="btn btn-outline-danger my-2 my-sm-0" onClick={() => this.props.showSidebar()}>Next</button>
+                <button className="btn btn-outline-danger my-2 my-sm-0" onClick={() => this.props.shuffleReads()}>Shuffle reads</button>
               </div>
             : '' }
           </div>
