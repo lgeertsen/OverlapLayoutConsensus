@@ -4,6 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "start": "next start -p $PORT",
+    "heroku-postbuild": "next build",
     "dev": "next"
   },
   "repository": "",

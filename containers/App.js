@@ -24,7 +24,7 @@ export default class App extends React.Component {
       step: 1,
       sequence: "",
       rebuildSequence: "",
-      lengthSequence: 50,
+      lengthSequence: 30,
       minLengthRead: 5,
       maxLengthRead: 10,
       animationText: "",
