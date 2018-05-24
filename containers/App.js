@@ -33,6 +33,7 @@ export default class App extends React.Component {
       voisins: [],
       scores: [],
       path: [],
+      score: -2,
       busy: false,
       waitingFunctionList: [],
       showReads: false
@@ -346,9 +347,8 @@ export default class App extends React.Component {
           max = i;
         }
       }
-      this.setState({step: 7, path: allPaths[max].path});
+      this.setState({step: 7, path: allPaths[max].path, score: allPaths[max].score});
       this.showPaths(allPaths);
-      // this.highlightPath(allPaths[max].path);
     });
   }
 
@@ -444,8 +444,8 @@ export default class App extends React.Component {
       step: 1,
       sequence: "",
       rebuildSequence: "",
-      lengthSequence: 50,
-      minLengthRead: 6,
+      lengthSequence: 30,
+      minLengthRead: 5,
       maxLengthRead: 10,
       animationText: "",
       animate: false,
@@ -453,6 +453,7 @@ export default class App extends React.Component {
       voisins: [],
       scores: [],
       path: [],
+      score: -2,
       busy: false,
       waitingFunctionList: [],
       showReads: false
@@ -538,6 +539,10 @@ export default class App extends React.Component {
                   ))}
                 </div>
               </div>
+              : ''
+            }
+            {this.state.step > 6 && this.state.score == -1 ?
+              <h2 className="text-danger">No path found</h2>
               : ''
             }
             { this.state.step > 7 ?
