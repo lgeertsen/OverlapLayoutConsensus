@@ -82,8 +82,14 @@ export default class App extends React.Component {
             'line-color': '#e67e22',
             'target-arrow-color': '#d35400',
             'transition-property': 'width, line-color, target-arrow-color',
-            'transition-duration': '0.5s'
-          }),
+            'transition-duration': '0.3s'
+          })
+          .selector('.showPath')
+            .css({
+              'width': 2,
+              'line-color': '#3498db',
+              'target-arrow-color': '#2980b9',
+            }),
 
       elements: elements
     });
@@ -117,7 +123,6 @@ export default class App extends React.Component {
       let min = this.state.minLengthRead;
       let max = this.state.maxLengthRead;
       let r = Helper.random(min, max+1);
-      console.log(r);
       let f = i+r;
       if(i+r >= sequence.length) {
         f = sequence.length;
@@ -334,10 +339,47 @@ export default class App extends React.Component {
   }
 
   nearest_neighbor() {
-    Neighbor.nearest_neighbor(this.state.voisins, this.state.scores, bestPath => {
-      this.setState({step: 7, path: bestPath});
-      this.highlightPath(bestPath);
+    Neighbor.nearest_neighbor(this.state.voisins, this.state.scores, allPaths => {
+      let max = 0;
+      for(let i = 1; i < allPaths.length; i++) {
+        if(allPaths[i].score > allPaths[max].score) {
+          max = i;
+        }
+      }
+      this.setState({step: 7, path: allPaths[max].path});
+      this.showPaths(allPaths);
+      // this.highlightPath(allPaths[max].path);
     });
+  }
+
+  showPaths(allPaths) {
+    let edges = cy.edges();
+    // let path = this.state.path;
+    for(let j = 0; j < allPaths.length; j++) {
+      (function(self, ind, completePath, max) {
+          setTimeout(() => {
+            console.log(completePath.score);
+            console.log(completePath.path);
+            let path = completePath.path
+            for(let i = 0; i < path.length-1; i++) {
+              edges.getElementById('e' + path[i] + 't' + path[i+1]).addClass('showPath');
+            }
+            setTimeout(() => {
+              self.hidePath(path);
+              if(ind == max) {
+                self.highlightPath(self.state.path);
+              }
+            }, 750)
+          }, 0 + (1250 * ind));
+        })(this, j, allPaths[j], allPaths.length-1);
+    }
+  }
+
+  hidePath(path) {
+    let edges = cy.edges();
+    for(let i = 0; i < path.length-1; i++) {
+      edges.getElementById('e' + path[i] + 't' + path[i+1]).removeClass('showPath');
+    }
   }
 
   highlightPath(path) {
@@ -347,7 +389,7 @@ export default class App extends React.Component {
       (function(ind) {
         setTimeout(() => {
           edges.getElementById('e' + path[ind] + 't' + path[ind+1]).addClass('path');
-        }, 0 + (750 * ind));
+        }, 0 + (500 * ind));
       })(i);
     }
   }
@@ -452,22 +494,23 @@ export default class App extends React.Component {
           {/* <button className="btn btn-outline-warning" onClick={() => this.skipAnimations()}>SKIP ANIMATIONS</button> */}
         </div>
 
-        {/* {this.state.step == 1 || this.state.step == 2 ?
-          <div className="wrapper">
-            <div className="row justify-content-center">
-              {this.state.reads.map((read, index) => (
-                <div key={index} className="read col-md-2">
-                  {read.split('').map((letter, index) => (
-                    <span key={index} className={"read" + letter}>{letter}</span>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-          : ''
-        } */}
+
         <div id="graphs">
           <div id="sidebar" className={this.state.step > 4 ? 'open' : ''}>
+            {this.state.step == 1 ?
+              <div className="wrapper">
+                <div className="row justify-content-center">
+                  <div className="col-sm-12">
+                    <h1 className="display-2">Overlap Layout Consensus</h1>
+                    <h3>Made by:</h3>
+                    <h4>Antoine Gouyon</h4>
+                    <h4>Lee Geertsen</h4>
+                    <h4>Thibault Odorico</h4>
+                  </div>
+                </div>
+              </div>
+              : ''
+            }
             {this.state.step < 5 ?
               <div id="sequenceContainer">
                 <h6>
@@ -497,7 +540,7 @@ export default class App extends React.Component {
               </div>
               : ''
             }
-            { this.state.step > 6 ?
+            { this.state.step > 7 ?
               <div id="rebuildContainer">
                 <div id="rebuildSequence">
                   <h6>
@@ -581,6 +624,9 @@ export default class App extends React.Component {
             justify-content: center;
             align-items: center;
             padding: 25px;
+          }
+          .wrapper h1 {
+            margin-bottom: 50px;
           }
           .row {
             max-height: calc(100vh - 56px);

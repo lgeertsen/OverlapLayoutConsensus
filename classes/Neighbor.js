@@ -46,14 +46,14 @@ export default class ClassName {
   	for(let i = 0; i < voisins.length; i++){
   		allPaths[i] = this.n_nearest_neighbor(i, voisins, scores);
   	}
-    let max = 0;
-    for(let i = 1; i < allPaths.length; i++) {
-      if(allPaths[i].score > allPaths[max].score) {
-        max = i;
-      }
-    }
-    console.log(allPaths);
-    console.log(allPaths[max]);
-    callback(allPaths[max].path);
+    // let max = 0;
+    // for(let i = 1; i < allPaths.length; i++) {
+    //   if(allPaths[i].score > allPaths[max].score) {
+    //     max = i;
+    //   }
+    // }
+    // console.log(allPaths);
+    // console.log(allPaths[max]);
+    callback(allPaths);
   }
 }
